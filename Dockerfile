@@ -36,5 +36,5 @@ ENV PORT=80
 # Expose the configured port
 EXPOSE 80
 
-# Run the server
-CMD ["tsx", "server.ts"]
+# Run the server using npx to ensure local tsx is found
+CMD ["npx", "tsx", "server.ts"]
