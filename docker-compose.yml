@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  aura-home:
+    build: .
+    container_name: aura-home
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    # Optional: Map a volume if you want to persist settings across rebuilds
+    # Note: Currently using LocalStorage, but could be adapted to file storage
+    environment:
+      - NODE_ENV=production
+      - PORT=80
