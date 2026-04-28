@@ -146,25 +146,25 @@ export default function App() {
             </p>
           </motion.div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             {/* System Stats Bar */}
-            <div className="hidden md:flex gap-4">
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl flex flex-col items-center min-w-[70px]">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">CPU</span>
-                <span className="text-sm font-mono text-indigo-300">{stats?.cpu.load || '--'}%</span>
+            <div className="flex gap-2 sm:gap-4 order-2 sm:order-1 w-full sm:w-auto justify-center sm:justify-start">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold">CPU</span>
+                <span className="text-xs sm:text-sm font-mono text-indigo-300">{stats?.cpu.load || '--'}%</span>
               </div>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl flex flex-col items-center min-w-[70px]">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">RAM</span>
-                <span className="text-sm font-mono text-emerald-300">{stats?.mem.percent || '--'}%</span>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold">RAM</span>
+                <span className="text-xs sm:text-sm font-mono text-emerald-300">{stats?.mem.percent || '--'}%</span>
               </div>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl flex flex-col items-center min-w-[70px]">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">DISK</span>
-                <span className="text-sm font-mono text-orange-300">{stats ? Math.round(stats.storage.use) : '--'}%</span>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold">DISK</span>
+                <span className="text-xs sm:text-sm font-mono text-orange-300">{stats ? Math.round(stats.storage.use) : '--'}%</span>
               </div>
             </div>
 
             {/* Weather, Time & Date Display */}
-            <div className="flex items-center gap-6 text-right">
+            <div className="flex items-center gap-6 text-right order-1 sm:order-2">
               {weather && (
                 <div className="flex flex-col items-end gap-1 px-4 border-r border-white/10">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500 font-mono">
@@ -246,8 +246,8 @@ export default function App() {
         />
 
         {/* Footer Info */}
-        <footer className="mt-24 pt-6 border-t border-white/5 flex items-center justify-between text-slate-500 text-[11px] font-mono tracking-widest uppercase">
-          <div className="flex gap-8">
+        <footer className="mt-24 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-[11px] font-mono tracking-widest uppercase text-center md:text-left">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
             <span className="flex items-center gap-2">
               <Clock size={10} className="text-slate-600" />
               UPTIME: {stats ? formatUptime(stats.uptime) : 'LOADING...'}

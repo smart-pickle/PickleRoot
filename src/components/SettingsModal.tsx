@@ -1,7 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Trash2, Edit2, Check, ExternalLink } from 'lucide-react';
+import { X, Plus, Trash2, Edit2, Check, ExternalLink, GripVertical } from 'lucide-react';
 import { Service } from '../types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -9,6 +27,71 @@ interface SettingsModalProps {
   services: Service[];
   onUpdateServices: (services: Service[]) => void;
   onResetDefaults: () => void;
+}
+
+interface SortableItemProps {
+  key?: string | number;
+  service: Service;
+  onEdit: (service: Service) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableServiceItem({ service, onEdit, onDelete }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: service.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0.5 : 1,
+    touchAction: 'none', // Critical for mobile drag & drop
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-4 bg-white/5 rounded-xl group border border-transparent hover:border-white/10 transition-all mb-2"
+    >
+      <div className="flex items-center gap-4">
+        <button
+          {...attributes}
+          {...listeners}
+          className="p-3 -m-2 hover:bg-white/10 rounded cursor-grab active:cursor-grabbing text-white/20 hover:text-white/60 transition-colors touch-none"
+        >
+          <GripVertical size={20} />
+        </button>
+        <div className="p-2 bg-white/10 rounded-lg">
+          <ExternalLink size={20} className="text-white/60" />
+        </div>
+        <div>
+          <p className="text-white font-medium">{service.name}</p>
+          <p className="text-xs text-white/40 truncate max-w-[200px]">{service.url}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onEdit(service)}
+          className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white"
+        >
+          <Edit2 size={18} />
+        </button>
+        <button
+          onClick={() => onDelete(service.id)}
+          className="p-2 hover:bg-white/10 rounded-lg text-red-400 hover:text-red-300"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function SettingsModal({ isOpen, onClose, services, onUpdateServices, onResetDefaults }: SettingsModalProps) {
@@ -19,6 +102,34 @@ export default function SettingsModal({ isOpen, onClose, services, onUpdateServi
     icon: 'Package',
     category: ''
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = services.findIndex((s) => s.id === active.id);
+      const newIndex = services.findIndex((s) => s.id === over.id);
+
+      onUpdateServices(arrayMove(services, oldIndex, newIndex));
+    }
+  };
 
   const handleSave = () => {
     if (!formData.name || !formData.url) return;
@@ -148,33 +259,25 @@ export default function SettingsModal({ isOpen, onClose, services, onUpdateServi
               <div className="space-y-4">
                 <h3 className="text-sm font-mono uppercase tracking-widest text-white/40">Current Services</h3>
                 <div className="space-y-2">
-                  {services.map(service => (
-                    <div key={service.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl group border border-transparent hover:border-white/10 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 bg-white/10 rounded-lg">
-                          <ExternalLink size={20} className="text-white/60" />
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">{service.name}</p>
-                          <p className="text-xs text-white/40 truncate max-w-[200px]">{service.url}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => startEdit(service)}
-                          className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(service.id)}
-                          className="p-2 hover:bg-white/10 rounded-lg text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={services.map((s) => s.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {services.map((service) => (
+                        <SortableServiceItem
+                          key={service.id}
+                          service={service}
+                          onEdit={startEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
                   {services.length === 0 && (
                     <p className="text-center text-white/20 py-8 italic font-sans">No services added yet.</p>
                   )}
