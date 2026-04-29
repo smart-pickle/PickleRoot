@@ -6,9 +6,10 @@ services:
     container_name: aura-home
     ports:
       - "80:80"
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
-    # Optional: Map a volume if you want to persist settings across rebuilds
-    # Note: Currently using LocalStorage, but could be adapted to file storage
+    # Use server-side persistence via JSON file in /app/data
     environment:
       - NODE_ENV=production
       - PORT=80

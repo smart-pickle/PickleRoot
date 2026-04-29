@@ -3,13 +3,66 @@ import { createServer as createViteServer } from "vite";
 import si from 'systeminformation';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function getLocalIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
 async function startServer() {
   const app = express();
+  app.use(express.json());
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const DATA_DIR = path.join(process.cwd(), 'data');
+  const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
+
+  // Ensure data directory exists
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+  } catch (err) {
+    console.error("Failed to create data directory:", err);
+  }
+
+  // API Route to fetch configuration
+  app.get("/api/config", async (req, res) => {
+    try {
+      const data = await fs.readFile(CONFIG_FILE, 'utf-8');
+      res.json(JSON.parse(data));
+    } catch (err) {
+      // Return null so frontend knows to use defaults or handle appropriately
+      res.json(null);
+    }
+  });
+
+  // API Route to save configuration
+  app.post("/api/config", async (req, res) => {
+    try {
+      await fs.writeFile(CONFIG_FILE, JSON.stringify(req.body, null, 2));
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Failed to save config:", err);
+      res.status(500).json({ error: "Failed to save configuration" });
+    }
+  });
+
+  // API Route to fetch system information (like local IP)
+  app.get("/api/info", (req, res) => {
+    res.json({
+      localIp: getLocalIp()
+    });
+  });
 
   // API Route for system stats
   app.get("/api/stats", async (req, res) => {

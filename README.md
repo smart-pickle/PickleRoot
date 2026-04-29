@@ -13,8 +13,8 @@ Aura is a minimalist, high-performance personal home dashboard designed for self
   - **Drag and Drop**: Reorder your service tabs easily with integrated mobile-friendly drag and drop.
   - Custom icons and categories.
 - **Responsive Design**: Optimized for everything from ultra-wide monitors to vertical smartphone screens.
-- **Weather Integration**: Quick glance at local weather conditions.
-- **Persistence**: Your configuration is saved locally in your browser.
+- **Weather Integration**: Quick glance at local weather conditions with customizable city selection in settings.
+- **Persistence**: Your configuration is saved securely on the server in a `config.json` file, allowing you to access the same dashboard from any device.
 
 ## 🚀 Quick Start with Docker
 
@@ -27,19 +27,17 @@ The easiest way to run Aura is using Docker. It is configured to run on **port 8
 version: '3.8'
 
 services:
-  aura-dashboard:
-    image: node:20-slim
-    container_name: aura-dashboard
-    working_dir: /app
-    volumes:
-      - .:/app
+  aura-home:
+    build: .
+    container_name: aura-home
     ports:
       - "80:80"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
     environment:
       - PORT=80
       - NODE_ENV=production
-    command: sh -c "npm install && npm run build && npx tsx server.ts"
-    restart: unless-stopped
 ```
 
 2. Start the container:

@@ -36,5 +36,8 @@ ENV PORT=80
 # Expose the configured port
 EXPOSE 80
 
+# Declare volume for persistence
+VOLUME /app/data
+
 # Run the server using npx to ensure local tsx is found
 CMD ["npx", "tsx", "server.ts"]

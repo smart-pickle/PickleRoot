@@ -6,4 +6,10 @@ export interface Service {
   category?: string;
 }
 
+export interface AppConfig {
+  services: Service[];
+  serverName: string;
+  weatherCity: string;
+}
+
 export type IconName = string;

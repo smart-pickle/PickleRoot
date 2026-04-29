@@ -13,10 +13,11 @@ const DEFAULT_SERVICES: Service[] = [
 ];
 
 export default function App() {
-  const [services, setServices] = useState<Service[]>(() => {
-    const saved = localStorage.getItem('aura-services');
-    return saved ? JSON.parse(saved) : DEFAULT_SERVICES;
-  });
+  const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
+  const [serverName, setServerName] = useState('PickleRoot');
+  const [weatherCity, setWeatherCity] = useState('Paris');
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
+  const [serverIp, setServerIp] = useState('127.0.0.1');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [weather, setWeather] = useState<{ temp: number; code: number } | null>(null);
@@ -29,9 +30,72 @@ export default function App() {
   const [serviceStatuses, setServiceStatuses] = useState<Record<string, 'online' | 'offline' | 'checking'>>({});
 
   useEffect(() => {
-    localStorage.setItem('aura-services', JSON.stringify(services));
-    console.log('Saved services to local storage:', services);
-  }, [services]);
+    const loadConfig = async () => {
+      try {
+        // Fetch server info first to get the local IP
+        let currentIp = '127.0.0.1';
+        try {
+          const infoRes = await fetch('/api/info');
+          const infoData = await infoRes.json();
+          if (infoData.localIp) {
+            currentIp = infoData.localIp;
+            setServerIp(infoData.localIp);
+          }
+        } catch (e) {
+          console.error('Failed to fetch server info:', e);
+        }
+
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        
+        if (data) {
+          // Handle migration: if data is an array, it's the old format (just services)
+          if (Array.isArray(data)) {
+            setServices(data);
+            setServerName('PickleRoot');
+            setWeatherCity('Paris');
+          } else {
+            // New format (AppConfig)
+            setServices(data.services || DEFAULT_SERVICES);
+            setServerName(data.serverName || 'PickleRoot');
+            setWeatherCity(data.weatherCity || 'Paris');
+          }
+        } else {
+          // If no config, use defaults but replace the hardcoded IP with the actual server IP
+          const dynamicDefaults = DEFAULT_SERVICES.map(s => ({
+            ...s,
+            url: s.url.replace('192.168.1.159', currentIp)
+          }));
+          setServices(dynamicDefaults);
+          setServerName('PickleRoot');
+          setWeatherCity('Paris');
+        }
+        setIsConfigLoaded(true);
+      } catch (err) {
+        console.error('Failed to load config:', err);
+        setIsConfigLoaded(true);
+      }
+    };
+    loadConfig();
+  }, []);
+
+  useEffect(() => {
+    if (!isConfigLoaded) return;
+
+    const saveConfig = async () => {
+      try {
+        await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ services, serverName, weatherCity })
+        });
+      } catch (err) {
+        console.error('Failed to save config to server:', err);
+      }
+    };
+    
+    saveConfig();
+  }, [services, serverName, weatherCity, isConfigLoaded]);
 
   // Periodic health checks
   useEffect(() => {
@@ -81,7 +145,19 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current_weather=true');
+        // First get coordinates for the city
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(weatherCity)}&count=1&language=en&format=json`);
+        const geoData = await geoRes.json();
+        
+        let lat = 48.8566; // Fallback to Paris
+        let lon = 2.3522;
+
+        if (geoData.results && geoData.results.length > 0) {
+          lat = geoData.results[0].latitude;
+          lon = geoData.results[0].longitude;
+        }
+
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const data = await res.json();
         setWeather({
           temp: Math.round(data.current_weather.temperature),
@@ -91,10 +167,12 @@ export default function App() {
         console.error('Failed to fetch weather:', err);
       }
     };
-    fetchWeather();
+    if (isConfigLoaded) {
+      fetchWeather();
+    }
     const weatherTimer = setInterval(fetchWeather, 600000); // Update every 10 mins
     return () => clearInterval(weatherTimer);
-  }, []);
+  }, [weatherCity, isConfigLoaded]);
 
   const timeString = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   const dateString = currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
@@ -138,11 +216,11 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h1 className="text-4xl font-bold tracking-tight text-white flex items-center">
-              PMZ <span className="text-indigo-400 font-mono text-2xl ml-3 opacity-80 tracking-tighter">node_01</span>
+              {serverName} <span className="text-indigo-400 font-mono text-2xl ml-3 opacity-80 tracking-tighter">node_01</span>
             </h1>
             <p className="text-slate-400 mt-2 flex items-center gap-2 text-sm">
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-              System Online &bull; 192.168.1.159
+              System Online &bull; {serverIp}
             </p>
           </motion.div>
           
@@ -169,7 +247,7 @@ export default function App() {
                 <div className="flex flex-col items-end gap-1 px-4 border-r border-white/10">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500 font-mono">
                     <Thermometer size={10} />
-                    <span>Paris</span>
+                    <span>{weatherCity}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {getWeatherIcon(weather.code)}
@@ -239,9 +317,18 @@ export default function App() {
           onClose={() => setIsSettingsOpen(false)} 
           services={services}
           onUpdateServices={setServices}
+          serverName={serverName}
+          onUpdateServerName={setServerName}
+          weatherCity={weatherCity}
+          onUpdateWeatherCity={setWeatherCity}
           onResetDefaults={() => {
-            localStorage.removeItem('aura-services');
-            setServices([...DEFAULT_SERVICES]);
+            const dynamicDefaults = DEFAULT_SERVICES.map(s => ({
+              ...s,
+              url: s.url.replace('192.168.1.159', serverIp)
+            }));
+            setServices(dynamicDefaults);
+            setServerName('PickleRoot');
+            setWeatherCity('Paris');
           }}
         />
 
@@ -259,7 +346,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-            AURA ENGINE ACTIVE
+            {serverName.toUpperCase()} ENGINE ACTIVE
           </div>
         </footer>
       </main>

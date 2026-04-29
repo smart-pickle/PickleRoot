@@ -26,6 +26,10 @@ interface SettingsModalProps {
   onClose: () => void;
   services: Service[];
   onUpdateServices: (services: Service[]) => void;
+  serverName: string;
+  onUpdateServerName: (name: string) => void;
+  weatherCity: string;
+  onUpdateWeatherCity: (city: string) => void;
   onResetDefaults: () => void;
 }
 
@@ -94,7 +98,17 @@ function SortableServiceItem({ service, onEdit, onDelete }: SortableItemProps) {
   );
 }
 
-export default function SettingsModal({ isOpen, onClose, services, onUpdateServices, onResetDefaults }: SettingsModalProps) {
+export default function SettingsModal({ 
+  isOpen, 
+  onClose, 
+  services, 
+  onUpdateServices, 
+  serverName, 
+  onUpdateServerName, 
+  weatherCity,
+  onUpdateWeatherCity,
+  onResetDefaults 
+}: SettingsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Service>>({
     name: '',
@@ -281,6 +295,33 @@ export default function SettingsModal({ isOpen, onClose, services, onUpdateServi
                   {services.length === 0 && (
                     <p className="text-center text-white/20 py-8 italic font-sans">No services added yet.</p>
                   )}
+                </div>
+
+                {/* General Settings */}
+                <div className="bg-white/5 rounded-2xl p-6 space-y-4 border border-white/5">
+                  <h3 className="text-sm font-mono uppercase tracking-widest text-white/40">General Settings</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50 ml-1">Server Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="PickleRoot"
+                        value={serverName}
+                        onChange={e => onUpdateServerName(e.target.value)}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-white/30 transition-colors"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/50 ml-1">Weather City</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Paris"
+                        value={weatherCity}
+                        onChange={e => onUpdateWeatherCity(e.target.value)}
+                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-white/30 transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="pt-8 border-t border-white/5">
