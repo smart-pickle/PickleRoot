@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Plus, Trash2, Edit2, Check, ExternalLink, GripVertical } from 'lucide-react';
 import { Service } from '../types';
@@ -110,6 +110,7 @@ export default function SettingsModal({
   onResetDefaults 
 }: SettingsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<Partial<Service>>({
     name: '',
     url: 'http://',
@@ -171,6 +172,7 @@ export default function SettingsModal({
   const startEdit = (service: Service) => {
     setEditingId(service.id);
     setFormData(service);
+    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -203,7 +205,7 @@ export default function SettingsModal({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div ref={contentRef} className="flex-1 overflow-y-auto p-6 space-y-8">
               {/* Add/Edit Form */}
               <div className="bg-white/5 rounded-2xl p-6 space-y-4">
                 <h3 className="text-sm font-mono uppercase tracking-widest text-white/40">{editingId ? 'Edit Service' : 'Add New Service'}</h3>
