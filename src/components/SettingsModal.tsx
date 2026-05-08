@@ -115,7 +115,8 @@ export default function SettingsModal({
     name: '',
     url: 'http://',
     icon: 'Package',
-    category: ''
+    category: '',
+    description: ''
   });
 
   const sensors = useSensors(
@@ -159,10 +160,11 @@ export default function SettingsModal({
         url: formData.url!,
         icon: formData.icon || 'Package',
         category: formData.category,
+        description: formData.description,
       };
       onUpdateServices([...services, newService]);
     }
-    setFormData({ name: '', url: 'http://', icon: 'Package', category: '' });
+    setFormData({ name: '', url: 'http://', icon: 'Package', category: '', description: '' });
   };
 
   const handleDelete = (id: string) => {
@@ -253,6 +255,16 @@ export default function SettingsModal({
                       className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-white/30 transition-colors"
                     />
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs text-white/50 ml-1">Description (Optional)</label>
+                    <textarea 
+                      placeholder="e.g. Media server for local streaming"
+                      value={formData.description}
+                      onChange={e => setFormData({ ...formData, description: e.target.value })}
+                      rows={2}
+                      className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-white/30 transition-colors resize-none"
+                    />
+                  </div>
                 </div>
                 <button 
                   onClick={handleSave}
@@ -263,7 +275,7 @@ export default function SettingsModal({
                 </button>
                 {editingId && (
                   <button 
-                    onClick={() => { setEditingId(null); setFormData({ name: '', url: 'http://', icon: 'Package', category: '' }); }}
+                    onClick={() => { setEditingId(null); setFormData({ name: '', url: 'http://', icon: 'Package', category: '', description: '' }); }}
                     className="w-full bg-white/5 text-white/60 font-semibold py-2 rounded-xl hover:bg-white/10 transition-colors"
                   >
                     Cancel Edit

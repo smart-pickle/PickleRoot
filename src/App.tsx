@@ -6,10 +6,10 @@ import ServiceCard from './components/ServiceCard';
 import SettingsModal from './components/SettingsModal';
 
 const DEFAULT_SERVICES: Service[] = [
-  { id: '1', name: 'Omnitools', url: 'http://192.168.1.159:8080', icon: 'Wrench', category: 'Tools' },
-  { id: '2', name: 'Yoshi Treasure Vault', url: 'http://192.168.1.159:3000', icon: 'Vault', category: 'Storage' },
-  { id: '3', name: 'Plex', url: 'http://192.168.1.159:32400', icon: 'PlayCircle', category: 'Media' },
-  { id: '4', name: 'Proxmox', url: 'https://192.168.1.159:8006', icon: 'Server', category: 'Infrastructure' },
+  { id: '1', name: 'Omnitools', url: 'http://192.168.1.159:8080', icon: 'Wrench', category: 'Tools', description: 'Collection of useful utilities for server management and development.' },
+  { id: '2', name: 'Yoshi Treasure Vault', url: 'http://192.168.1.159:3000', icon: 'Vault', category: 'Storage', description: 'Secure personal storage for all your digital treasures.' },
+  { id: '3', name: 'Plex', url: 'http://192.168.1.159:32400', icon: 'PlayCircle', category: 'Media', description: 'Your personal media server for streaming movies and TV shows.' },
+  { id: '4', name: 'Proxmox', url: 'https://192.168.1.159:8006', icon: 'Server', category: 'Infrastructure', description: 'Virtualization platform for managing containers and virtual machines.' },
 ];
 
 export default function App() {

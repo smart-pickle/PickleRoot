@@ -47,7 +47,7 @@ export default function ServiceCard({ service, status }: ServiceCardProps) {
       
       <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{service.name}</h3>
       <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-4">
-        {service.category ? `${service.category} service` : 'Local network resource'} accessible at your node.
+        {service.description || (service.category ? `${service.category} service accessible at your node.` : 'Local network resource accessible at your node.')}
       </p>
 
       <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">

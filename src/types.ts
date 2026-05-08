@@ -4,6 +4,7 @@ export interface Service {
   url: string;
   icon: string; // Lucide icon name
   category?: string;
+  description?: string;
 }
 
 export interface AppConfig {
