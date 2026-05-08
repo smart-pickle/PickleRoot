@@ -2,7 +2,7 @@
 
 PickleRoot is a minimalist, high-performance personal home dashboard designed for self-hosters and power users. It provides real-time system monitoring, service health status, and a sleek interface to organize your digital life.
 
-![PickleRoot Screenshot](https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2000)
+![PickleRoot Screenshot](https://github.com/smart-pickle/PickleRoot/blob/main/screenshot.png)
 
 ## ✨ Features
 
