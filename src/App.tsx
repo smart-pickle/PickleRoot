@@ -130,8 +130,16 @@ export default function App() {
       try {
         const res = await fetch('/api/stats');
         if (res.ok) {
-          const data = await res.json();
-          setStats(data);
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const data = await res.json();
+            setStats(data);
+          } else {
+            const text = await res.text();
+            console.error('Expected JSON but got:', text.substring(0, 100));
+          }
+        } else {
+          console.error('Stats API returned status:', res.status);
         }
       } catch (err) {
         console.error('Failed to fetch system stats:', err);

@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import si from 'systeminformation';
+import systeminfo from 'systeminformation';
+const si = (systeminfo as any).default || systeminfo;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
@@ -24,6 +25,10 @@ function getLocalIp() {
 async function startServer() {
   const app = express();
   app.use(express.json());
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
   const DATA_DIR = path.join(process.cwd(), 'data');
   const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
@@ -66,16 +71,37 @@ async function startServer() {
 
   // API Route for system stats
   app.get("/api/stats", async (req, res) => {
+    const statsTimeout = setTimeout(() => {
+      console.error("Stats request timed out");
+      if (!res.headersSent) {
+        res.status(504).json({ error: "System stats request timed out" });
+      }
+    }, 4500); // Slightly less than the 5s fetch interval
+
     try {
-      const [time, fsSize, load, mem] = await Promise.all([
-        si.time(),
-        si.fsSize(),
-        si.currentLoad(),
-        si.mem()
+      // Use individual catch for si calls as some might fail in containers
+      // Wrap in Promise.resolve to handle cases where they might not return a promise (though they should)
+      const [time, load, mem] = await Promise.all([
+        Promise.resolve(si.time()).catch(e => { console.error("si.time error:", e); return { uptime: 0 }; }),
+        Promise.resolve(si.currentLoad()).catch(e => { console.error("si.currentLoad error:", e); return { currentLoad: 0 }; }),
+        Promise.resolve(si.mem()).catch(e => { console.error("si.mem error:", e); return { active: 0, total: 0 }; })
       ]);
 
+      let fsSize: any[] = [];
+      try {
+        // Run fsSize separately with its own timeout/catch
+        const fsPromise = Promise.resolve(si.fsSize());
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('si.fsSize timeout')), 2000));
+        fsSize = await Promise.race([fsPromise, timeoutPromise]) as any[];
+      } catch (e) {
+        console.error("si.fsSize error or timeout:", e);
+      }
+
+      clearTimeout(statsTimeout);
+      if (res.headersSent) return;
+
       // Calculate total/used storage across all relevant partitions
-      const rootFs = fsSize.find(f => f.mount === '/') || fsSize[0] || { used: 0, size: 0, use: 0 };
+      const rootFs = (Array.isArray(fsSize) ? (fsSize.find(f => f.mount === '/') || fsSize[0]) : null) || { used: 0, size: 0, use: 0 };
       
       const cpuLoad = isNaN(load.currentLoad) ? 0 : load.currentLoad;
 
@@ -96,8 +122,11 @@ async function startServer() {
         }
       });
     } catch (error) {
-      console.error("System stats error:", error);
-      res.status(500).json({ error: "Failed to fetch system stats" });
+      clearTimeout(statsTimeout);
+      console.error("System stats error handler:", error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Failed to fetch system stats" });
+      }
     }
   });
 

@@ -8,8 +8,18 @@ interface ServiceCardProps {
 }
 
 export default function ServiceCard({ service, status }: ServiceCardProps) {
+  // Function to convert kebab-case to PascalCase for icon names
+  const toPascalCase = (str: string) => {
+    if (!str) return str;
+    return str
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('');
+  };
+
   // Dynamically get the icon component
-  const IconComponent = (LucideIcons as any)[service.icon] || LucideIcons.ExternalLink;
+  const iconName = toPascalCase(service.icon);
+  const IconComponent = (LucideIcons as any)[iconName] || (LucideIcons as any)[service.icon] || LucideIcons.ExternalLink;
 
   const statusConfig = {
     online: { color: 'bg-emerald-500', label: 'Active', text: 'text-emerald-400', glow: 'shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
