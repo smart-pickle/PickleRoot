@@ -82,9 +82,9 @@ async function startServer() {
       // Use individual catch for si calls as some might fail in containers
       // Wrap in Promise.resolve to handle cases where they might not return a promise (though they should)
       const [time, load, mem] = await Promise.all([
-        Promise.resolve(si.time()).catch(e => { console.error("si.time error:", e); return { uptime: 0 }; }),
-        Promise.resolve(si.currentLoad()).catch(e => { console.error("si.currentLoad error:", e); return { currentLoad: 0 }; }),
-        Promise.resolve(si.mem()).catch(e => { console.error("si.mem error:", e); return { active: 0, total: 0 }; })
+        (async () => { try { return await si.time(); } catch (e) { console.error("si.time error:", e); return { uptime: 0 }; } })(),
+        (async () => { try { return await si.currentLoad(); } catch (e) { console.error("si.currentLoad error:", e); return { currentLoad: 0 }; } })(),
+        (async () => { try { return await si.mem(); } catch (e) { console.error("si.mem error:", e); return { active: 0, total: 0 }; } })()
       ]);
 
       let fsSize: any[] = [];

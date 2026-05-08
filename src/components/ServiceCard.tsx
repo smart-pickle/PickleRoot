@@ -42,10 +42,10 @@ export default function ServiceCard({ service, status }: ServiceCardProps) {
       className="glass-card p-6 flex flex-col group cursor-pointer transition-all min-h-[220px]"
     >
       <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-        <IconComponent className="w-6 h-6 text-indigo-400" />
+        <IconComponent className="w-6 h-6 text-accent" />
       </div>
       
-      <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-indigo-300 transition-colors">{service.name}</h3>
+      <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-accent-hover transition-colors">{service.name}</h3>
       <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-4">
         {service.description || (service.category ? `${service.category} service accessible at your node.` : 'Local network resource accessible at your node.')}
       </p>

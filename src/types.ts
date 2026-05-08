@@ -11,6 +11,7 @@ export interface AppConfig {
   services: Service[];
   serverName: string;
   weatherCity: string;
+  theme?: string;
 }
 
 export type IconName = string;

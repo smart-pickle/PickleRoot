@@ -16,6 +16,7 @@ export default function App() {
   const [services, setServices] = useState<Service[]>(DEFAULT_SERVICES);
   const [serverName, setServerName] = useState('PickleRoot');
   const [weatherCity, setWeatherCity] = useState('Paris');
+  const [theme, setTheme] = useState('indigo');
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   const [serverIp, setServerIp] = useState('127.0.0.1');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -59,6 +60,7 @@ export default function App() {
             setServices(data.services || DEFAULT_SERVICES);
             setServerName(data.serverName || 'PickleRoot');
             setWeatherCity(data.weatherCity || 'Paris');
+            setTheme(data.theme || 'indigo');
           }
         } else {
           // If no config, use defaults but replace the hardcoded IP with the actual server IP
@@ -79,23 +81,28 @@ export default function App() {
     loadConfig();
   }, []);
 
-  useEffect(() => {
-    if (!isConfigLoaded) return;
+  const saveConfig = async () => {
+    try {
+      await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services, serverName, weatherCity, theme })
+      });
+    } catch (err) {
+      console.error('Failed to save config to server:', err);
+    }
+  };
 
-    const saveConfig = async () => {
-      try {
-        await fetch('/api/config', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ services, serverName, weatherCity })
-        });
-      } catch (err) {
-        console.error('Failed to save config to server:', err);
-      }
-    };
-    
-    saveConfig();
-  }, [services, serverName, weatherCity, isConfigLoaded]);
+  useEffect(() => {
+    if (isConfigLoaded) {
+      saveConfig();
+    }
+  }, [services, serverName, weatherCity, theme, isConfigLoaded]);
+
+  // Apply theme to document element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Periodic health checks
   useEffect(() => {
@@ -206,12 +213,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative bg-[#020617] selection:bg-indigo-500/30">
+    <div className="min-h-screen relative bg-[#020617] selection:bg-accent/30" data-theme={theme}>
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-100px] right-[-100px] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[150px]" />
-        <div className="absolute top-[20%] right-[10%] w-[300px] h-[300px] bg-blue-500/15 rounded-full blur-[100px]" />
+        <div className="absolute top-[20%] right-[10%] w-[300px] h-[300px] bg-accent/15 rounded-full blur-[100px]" />
       </div>
 
       {/* Main Layout */}
@@ -224,7 +231,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h1 className="text-4xl font-bold tracking-tight text-white flex items-center">
-              {serverName} <span className="text-indigo-400 font-mono text-2xl ml-3 opacity-80 tracking-tighter">node_01</span>
+              {serverName} <span className="text-accent-hover font-mono text-2xl ml-3 opacity-80 tracking-tighter">node_01</span>
             </h1>
             <p className="text-slate-400 mt-2 flex items-center gap-2 text-sm">
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -237,7 +244,7 @@ export default function App() {
             <div className="flex gap-2 sm:gap-4 order-2 sm:order-1 w-full sm:w-auto justify-center sm:justify-start">
               <div className="bg-white/5 backdrop-blur-md border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
                 <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold">CPU</span>
-                <span className="text-xs sm:text-sm font-mono text-indigo-300">{stats?.cpu.load || '--'}%</span>
+                <span className="text-xs sm:text-sm font-mono text-accent">{stats?.cpu.load || '--'}%</span>
               </div>
               <div className="bg-white/5 backdrop-blur-md border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl flex flex-col items-center min-w-[60px] sm:min-w-[70px]">
                 <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold">RAM</span>
@@ -299,12 +306,12 @@ export default function App() {
                 onClick={() => setIsSettingsOpen(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white/5 backdrop-blur-xl border-2 border-dashed border-white/10 p-6 rounded-[2rem] flex flex-col items-center justify-center group cursor-pointer hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all min-h-[220px]"
+                className="bg-white/5 backdrop-blur-xl border-2 border-dashed border-white/10 p-6 rounded-[2rem] flex flex-col items-center justify-center group cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all min-h-[220px]"
               >
                 <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Settings className="w-6 h-6 text-slate-400 group-hover:text-indigo-300" />
+                  <Settings className="w-6 h-6 text-slate-400 group-hover:text-accent-hover" />
                 </div>
-                <span className="mt-4 text-sm font-medium text-slate-400 group-hover:text-indigo-300">Add Service</span>
+                <span className="mt-4 text-sm font-medium text-slate-400 group-hover:text-accent-hover">Add Service</span>
               </motion.button>
             )}
           </div>
@@ -329,6 +336,8 @@ export default function App() {
           onUpdateServerName={setServerName}
           weatherCity={weatherCity}
           onUpdateWeatherCity={setWeatherCity}
+          theme={theme}
+          onUpdateTheme={setTheme}
           onResetDefaults={() => {
             const dynamicDefaults = DEFAULT_SERVICES.map(s => ({
               ...s,
@@ -337,6 +346,7 @@ export default function App() {
             setServices(dynamicDefaults);
             setServerName('PickleRoot');
             setWeatherCity('Paris');
+            setTheme('indigo');
           }}
         />
 

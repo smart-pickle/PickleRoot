@@ -30,6 +30,8 @@ interface SettingsModalProps {
   onUpdateServerName: (name: string) => void;
   weatherCity: string;
   onUpdateWeatherCity: (city: string) => void;
+  theme: string;
+  onUpdateTheme: (theme: string) => void;
   onResetDefaults: () => void;
 }
 
@@ -107,6 +109,8 @@ export default function SettingsModal({
   onUpdateServerName, 
   weatherCity,
   onUpdateWeatherCity,
+  theme,
+  onUpdateTheme,
   onResetDefaults 
 }: SettingsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -193,6 +197,7 @@ export default function SettingsModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            onClick={e => e.stopPropagation()}
             className="relative w-full max-w-2xl bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
           >
             {/* Header */}
@@ -235,7 +240,7 @@ export default function SettingsModal({
                   <div className="space-y-2">
                     <label className="text-xs text-white/50 ml-1 flex items-center justify-between">
                       <span>Lucide Icon Name</span>
-                      <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:underline">Browse Icons</a>
+                      <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-[10px] text-accent hover:underline">Browse Icons</a>
                     </label>
                     <input 
                       type="text" 
@@ -268,7 +273,7 @@ export default function SettingsModal({
                 </div>
                 <button 
                   onClick={handleSave}
-                  className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-accent text-white font-semibold py-3 rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2"
                 >
                   {editingId ? <Check size={18} /> : <Plus size={18} />}
                   {editingId ? 'Update Service' : 'Add Service'}
@@ -314,6 +319,33 @@ export default function SettingsModal({
                 {/* General Settings */}
                 <div className="bg-white/5 rounded-2xl p-6 space-y-4 border border-white/5">
                   <h3 className="text-sm font-mono uppercase tracking-widest text-white/40">General Settings</h3>
+                  
+                  <div className="space-y-4">
+                    <label className="text-xs text-white/50 ml-1">Dashboard Theme</label>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        { id: 'indigo', color: '#6366f1' },
+                        { id: 'blue', color: '#3b82f6' },
+                        { id: 'emerald', color: '#10b981' },
+                        { id: 'rose', color: '#f43f5e' },
+                        { id: 'amber', color: '#f59e0b' },
+                        { id: 'cyan', color: '#06b6d4' },
+                        { id: 'violet', color: '#8b5cf6' },
+                        { id: 'crimson', color: '#dc2626' }
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => onUpdateTheme(t.id)}
+                          className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${theme === t.id ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-105'}`}
+                          style={{ backgroundColor: t.color }}
+                          title={t.id.charAt(0).toUpperCase() + t.id.slice(1)}
+                        >
+                          {theme === t.id && <Check size={18} className="text-white" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs text-white/50 ml-1">Server Name</label>
