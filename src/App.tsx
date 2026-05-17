@@ -17,6 +17,7 @@ export default function App() {
   const [serverName, setServerName] = useState('PickleRoot');
   const [weatherCity, setWeatherCity] = useState('Paris');
   const [theme, setTheme] = useState('indigo');
+  const [timeFormat, setTimeFormat] = useState<'24h' | '12h'>('24h');
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   const [serverIp, setServerIp] = useState('127.0.0.1');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -61,6 +62,7 @@ export default function App() {
             setServerName(data.serverName || 'PickleRoot');
             setWeatherCity(data.weatherCity || 'Paris');
             setTheme(data.theme || 'indigo');
+            setTimeFormat(data.timeFormat || '24h');
           }
         } else {
           // If no config, use defaults but replace the hardcoded IP with the actual server IP
@@ -86,7 +88,7 @@ export default function App() {
       await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ services, serverName, weatherCity, theme })
+        body: JSON.stringify({ services, serverName, weatherCity, theme, timeFormat })
       });
     } catch (err) {
       console.error('Failed to save config to server:', err);
@@ -97,7 +99,7 @@ export default function App() {
     if (isConfigLoaded) {
       saveConfig();
     }
-  }, [services, serverName, weatherCity, theme, isConfigLoaded]);
+  }, [services, serverName, weatherCity, theme, timeFormat, isConfigLoaded]);
 
   // Apply theme to document element
   useEffect(() => {
@@ -189,7 +191,11 @@ export default function App() {
     return () => clearInterval(weatherTimer);
   }, [weatherCity, isConfigLoaded]);
 
-  const timeString = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const timeString = currentTime.toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: timeFormat === '12h' 
+  });
   const dateString = currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 
   const getWeatherIcon = (code: number) => {
@@ -338,6 +344,8 @@ export default function App() {
           onUpdateWeatherCity={setWeatherCity}
           theme={theme}
           onUpdateTheme={setTheme}
+          timeFormat={timeFormat}
+          onUpdateTimeFormat={setTimeFormat}
           onResetDefaults={() => {
             const dynamicDefaults = DEFAULT_SERVICES.map(s => ({
               ...s,
@@ -347,6 +355,7 @@ export default function App() {
             setServerName('PickleRoot');
             setWeatherCity('Paris');
             setTheme('indigo');
+            setTimeFormat('24h');
           }}
         />
 

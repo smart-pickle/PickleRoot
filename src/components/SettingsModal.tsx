@@ -32,6 +32,8 @@ interface SettingsModalProps {
   onUpdateWeatherCity: (city: string) => void;
   theme: string;
   onUpdateTheme: (theme: string) => void;
+  timeFormat: '24h' | '12h';
+  onUpdateTimeFormat: (format: '24h' | '12h') => void;
   onResetDefaults: () => void;
 }
 
@@ -111,6 +113,8 @@ export default function SettingsModal({
   onUpdateWeatherCity,
   theme,
   onUpdateTheme,
+  timeFormat,
+  onUpdateTimeFormat,
   onResetDefaults 
 }: SettingsModalProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -343,6 +347,24 @@ export default function SettingsModal({
                           {theme === t.id && <Check size={18} className="text-white" />}
                         </button>
                       ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-xs text-white/50 ml-1">Time Format</label>
+                    <div className="flex gap-2 p-1 bg-black/20 rounded-xl w-fit">
+                      <button
+                        onClick={() => onUpdateTimeFormat('24h')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${timeFormat === '24h' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+                      >
+                        24-HOUR
+                      </button>
+                      <button
+                        onClick={() => onUpdateTimeFormat('12h')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${timeFormat === '12h' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+                      >
+                        AM/PM
+                      </button>
                     </div>
                   </div>
 
